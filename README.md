@@ -37,7 +37,7 @@ pip install git+https://github.com/Cupcakus/pafy
 
 ## Bugs
 
-If you find a bug, please report it on [GitHub](TBA).
+If you find a bug, please report it under [issues](https://github.com/RealSoerensen/XPLAT-MusicPlayer/issues).
 
 If you think you can fix the bug, please assign the issue to yourself and make a PR when fixed.
 
