@@ -43,4 +43,4 @@ If you think you can fix the bug, please assign the issue to yourself and make a
 
 ## License
 
-XPlat-MP is licensed under the [MIT license](LICENSE.md).
+XPlat-MP is licensed under the [GPL-3.0](LICENSE.md) license.
