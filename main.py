@@ -1,12 +1,16 @@
+import requests
 from PyQt5.QtWidgets import *
+from PyQt5.QtMultimedia import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import sys
+import os
 import __init__
 import random
 from platforms import spotify, youtube, soundcloud
 from backend.database import session, Song
-
+from backend.player import Player
+import vlc
 
 class Window(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -23,7 +27,7 @@ class Window(QMainWindow):
         # Create Image Label
         self.image = QLabel(self)
         self.image.setGeometry(100, 50, 200, 200)
-        self.image.setPixmap(QPixmap(self.get_image()))
+        self.get_image()
         self.image.setScaledContents(True)
 
         # create a menu bar
@@ -41,21 +45,25 @@ class Window(QMainWindow):
 
         # Create widget with songs
         self.song_widget = QListWidget(self)
-        self.song_widget.setGeometry(400, 25, 175, 350)
+        self.song_widget.setGeometry(400, 25, 175, 175)
         self.get_songs()
 
-        # Create buttons
-        prev_btn = QPushButton(self)
-        prev_btn.setGeometry(25, 275, 100, 100)
-        prev_btn.clicked.connect(self.prev_song)
-        prev_btn.setIcon(QIcon("./assets/prev.png"))
-        prev_btn.setIconSize(QSize(100, 100))
+        # Create widget with queue
+        self.queue_widget = QListWidget(self)
+        self.queue_widget.setGeometry(400, 200, 175, 175)
 
-        play_btn = QPushButton(self)
-        play_btn.setGeometry(150, 275, 100, 100)
-        play_btn.clicked.connect(self.play_song)
-        play_btn.setIcon(QIcon("./assets/play.png"))
-        play_btn.setIconSize(QSize(100, 100))
+        # Create buttons
+        self.prev_btn = QPushButton(self)
+        self.prev_btn.setGeometry(25, 275, 100, 100)
+        self.prev_btn.clicked.connect(self.prev_song)
+        self.prev_btn.setIcon(QIcon("./assets/prev.png"))
+        self.prev_btn.setIconSize(QSize(100, 100))
+
+        self.play_btn = QPushButton(self)
+        self.play_btn.setGeometry(150, 275, 100, 100)
+        self.play_btn.clicked.connect(self.init_vlc)
+        self.play_btn.setIcon(QIcon("./assets/play.png"))
+        self.play_btn.setIconSize(QSize(100, 100))
 
         next_btn = QPushButton(self)
         next_btn.setGeometry(275, 275, 100, 100)
@@ -63,8 +71,29 @@ class Window(QMainWindow):
         next_btn.setIcon(QIcon("./assets/next.png"))
         next_btn.setIconSize(QSize(100, 100))
 
-    def get_image(self):
-        return "./assets/default.png"
+    def get_image(self, url=None):
+        default = QPixmap("./assets/default.png")
+        if url is None:
+            self.image.setPixmap(default)
+            self.image.repaint()
+            return
+
+        try:
+            thumbnail = requests.get(url)
+            if thumbnail.status_code == 200:
+                with open("./assets/thumbnail.png", "wb") as f:
+                    f.write(thumbnail.content)
+                self.image.setPixmap(QPixmap("./assets/thumbnail.png"))
+                self.image.keepAspectRatio = False
+                os.remove("./assets/thumbnail.png")
+                return
+
+            QMessageBox.warning(self, "Error", "Could not load image")
+
+        except Exception:
+            self.image.setPixmap(default)
+            self.image.repaint()
+            return
 
     def get_songs(self):
         self.song_widget.clear()
@@ -74,6 +103,9 @@ class Window(QMainWindow):
             self.song_widget.item(self.song_widget.count() - 1).setData(
                 Qt.UserRole, song
             )
+
+    def get_queue(self):
+        pass
 
     def shuffle_music(self):
         new_list = random.sample(self.songs, len(self.songs))
@@ -101,8 +133,33 @@ class Window(QMainWindow):
     def prev_song(self):
         pass
 
+    def init_vlc(self):
+        self.song = self.song_widget.currentItem().data(Qt.UserRole)
+        self.get_image(self.song.thumbnail)
+        self.instance = vlc.Instance()
+        self.player = self.instance.media_player_new()
+        if self.song.platform == "youtube":
+            Player.YouTube(self.player, self.song, self.instance)
+            self.play_song()
+
+        elif self.song.platform == "spotify":
+            pass
+
+        elif self.song.platform == "soundcloud":
+            pass
+
     def play_song(self):
-        pass
+        self.player.set_pause(0)
+        self.play_btn.setIcon(QIcon("./assets/pause.png"))
+        self.play_btn.clicked.disconnect()
+        self.play_btn.clicked.connect(self.pause_song)
+
+    def pause_song(self):
+        self.player.set_pause(1)
+        self.play_btn.setIcon(QIcon("./assets/play.png"))
+        self.play_btn.clicked.disconnect()
+        self.play_btn.clicked.connect(self.play_song)
+
 
 
 if __name__ == "__main__":

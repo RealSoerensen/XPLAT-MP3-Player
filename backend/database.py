@@ -10,6 +10,7 @@ base = declarative_base()
 class Song(base):
     __tablename__ = 'songs'
     id = Column(Integer, primary_key=True)
+    platform = Column(String)
     title = Column(String)
     url = Column(String)
     thumbnail = Column(String)

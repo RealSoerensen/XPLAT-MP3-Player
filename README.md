@@ -4,7 +4,7 @@ XPlat-MP is a cross-platform music player designed to play music from your favor
 
 ## Features
 
-Currently you can only add songs from YouTube to your music collection.
+Currently you can only add songs from YouTube to your music collection and play them via VLC.
 
 See [TODO](TODO.md) for upcoming features.
 
