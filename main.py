@@ -2,17 +2,15 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import sys
-import pickle
-import os
+import __init__
 import random
 from platforms import spotify, youtube, soundcloud
+from backend.database import session, Song
 
 
 class Window(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__()
-        with open("./assets/songs.pkl", "rb") as f:
-            self.songs = pickle.load(f)
 
         self.setGeometry(300, 300, 600, 400)
         self.setWindowTitle("X-Platform Music Player")
@@ -64,21 +62,22 @@ class Window(QMainWindow):
         next_btn.clicked.connect(self.next_song)
         next_btn.setIcon(QIcon("./assets/next.png"))
         next_btn.setIconSize(QSize(100, 100))
-        self.repaint()
 
     def get_image(self):
         return "./assets/default.png"
 
     def get_songs(self):
-        for x in self.songs:
-            print(x)
-            self.song_widget.addItem(str(x))
-        self.song_widget.repaint()
+        self.song_widget.clear()
+        self.songs = session.query(Song).all()
+        for song in self.songs:
+            self.song_widget.addItem(song.title)
+            self.song_widget.item(self.song_widget.count() - 1).setData(
+                Qt.UserRole, song
+            )
 
     def shuffle_music(self):
         new_list = random.sample(self.songs, len(self.songs))
         self.songs = new_list
-        self.song_widget.clear()
         self.get_songs()
 
     def add_spotify(self):
@@ -106,15 +105,10 @@ class Window(QMainWindow):
         pass
 
 
-if __name__ == '__main__':
-    # check if songs.pkl exists
-    if not os.path.exists("./assets/songs.pkl"):
-        with open("./assets/songs.pkl", "wb") as f:
-            pickle.dump({}, f)
-
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     try:
-        with open('./Assets/stylesheet', 'r') as f:
+        with open("./Assets/stylesheet", "r") as f:
             app.setStyleSheet(f.read())
     except FileNotFoundError:
         pass

@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import pafy
-import pickle
+from backend.database import session, Song
 
 
 class YouTube(QMainWindow):
@@ -13,6 +13,7 @@ class YouTube(QMainWindow):
 
         self.setGeometry(300, 300, 300, 300)
         self.setWindowTitle("Add from YouTube")
+        self.songs = session.query(Song).all()
 
         self.UIComponents()
 
@@ -53,22 +54,25 @@ class YouTube(QMainWindow):
         except:
             pass
 
-        with open("./assets/songs.pkl", "rb") as f:
-            songs = pickle.load(f)
+        for x in self.songs:
+            if title == x.title:
+                msgbox = QMessageBox.warning(
+                    self,
+                    "Warning",
+                    "Song already exists\nDo you wish to add it anyway?",
+                    QMessageBox.Yes | QMessageBox.No,
+                )
+                if msgbox == QMessageBox.No:
+                    return
 
-        if title in songs:
-            msgbox = QMessageBox.warning(
-                self, "Warning", "Song already exists\nDo you wish to add it anyway?", QMessageBox.Yes | QMessageBox.No)
-            if msgbox == QMessageBox.No:
-                return
-
-        self.add_song_to_list(title, url)
+        self.add_song_to_list(title, url, thumbnail)
 
         QMessageBox.information(self, "Success", "Song added successfully")
 
     def add_song_to_list(self, title, url, thumbnail=None):
-        with open("./assets/songs.pkl", "wb") as f:
-            f.write(pickle.dumps({title: [url, thumbnail]}))
+        session.add(Song(title=title, url=url, thumbnail=thumbnail))
+        session.commit()
+        self.songs = session.query(Song).all()
 
     def closeEvent(self, event):
         self.window_closed.emit()
