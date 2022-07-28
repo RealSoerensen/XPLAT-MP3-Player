@@ -1,4 +1,4 @@
--Add Spotify and SoundCloud intergration
+-Add Spotify intergration
 
 -Add shuffle and repeat buttons
 

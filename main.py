@@ -1,16 +1,21 @@
-import requests
-from PyQt5.QtWidgets import *
-from PyQt5.QtMultimedia import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-import sys
-import os
-import __init__
-import random
-from platforms import spotify, youtube, soundcloud
-from backend.database import session, Song
-from backend.player import Player
-import vlc
+try:
+    import requests
+    from PyQt5.QtWidgets import *
+    from PyQt5.QtMultimedia import *
+    from PyQt5.QtGui import *
+    from PyQt5.QtCore import *
+    import sys
+    import os
+    import __init__
+    import random
+    from platforms import spotify, youtube, soundcloud
+    from backend.database import session, Songs
+    from backend.player import Player
+    import vlc
+except ImportError as e:
+    print(e)
+    sys.exit(1)
+
 
 class Window(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -80,24 +85,25 @@ class Window(QMainWindow):
 
         try:
             thumbnail = requests.get(url)
-            if thumbnail.status_code == 200:
+            if thumbnail.status_code != 200:
+                QMessageBox.warning(self, "Error", "Could not load image")
+                self.image.setPixmap(default)
+
+            else:
                 with open("./assets/thumbnail.png", "wb") as f:
                     f.write(thumbnail.content)
                 self.image.setPixmap(QPixmap("./assets/thumbnail.png"))
                 self.image.keepAspectRatio = False
                 os.remove("./assets/thumbnail.png")
-                return
-
-            QMessageBox.warning(self, "Error", "Could not load image")
 
         except Exception:
             self.image.setPixmap(default)
-            self.image.repaint()
-            return
+
+        self.image.repaint()
 
     def get_songs(self):
         self.song_widget.clear()
-        self.songs = session.query(Song).all()
+        self.songs = session.query(Songs).all()
         for song in self.songs:
             self.song_widget.addItem(song.title)
             self.song_widget.item(self.song_widget.count() - 1).setData(
@@ -137,6 +143,7 @@ class Window(QMainWindow):
         self.song = self.song_widget.currentItem().data(Qt.UserRole)
         self.get_image(self.song.thumbnail)
         self.instance = vlc.Instance()
+        self.instance.log_unset()
         self.player = self.instance.media_player_new()
         if self.song.platform == "youtube":
             Player.YouTube(self.player, self.song, self.instance)
@@ -146,7 +153,8 @@ class Window(QMainWindow):
             pass
 
         elif self.song.platform == "soundcloud":
-            pass
+            Player.SoundCloud(self.player, self.song, self.instance)
+            self.play_song()
 
     def play_song(self):
         self.player.set_pause(0)
@@ -161,14 +169,14 @@ class Window(QMainWindow):
         self.play_btn.clicked.connect(self.play_song)
 
 
-
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     try:
         with open("./Assets/stylesheet", "r") as f:
             app.setStyleSheet(f.read())
     except FileNotFoundError:
-        pass
+        QMessageBox.warning(None, "Error", "Could not load stylesheet")
+        app.Exit()
 
     window = Window()
     sys.exit(app.exec_())

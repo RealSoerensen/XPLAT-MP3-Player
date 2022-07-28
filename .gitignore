@@ -1,3 +1,4 @@
 Pipfile
 Pipfile.lock
 backend/songs.sqlite
+assets/downloads/

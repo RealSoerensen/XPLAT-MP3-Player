@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import pafy
-from backend.database import session, Song
+from backend.database import session, Songs
 
 
 class YouTube(QMainWindow):
@@ -13,7 +13,6 @@ class YouTube(QMainWindow):
 
         self.setGeometry(300, 300, 300, 300)
         self.setWindowTitle("Add from YouTube")
-        self.songs = session.query(Song).all()
 
         self.UIComponents()
 
@@ -53,7 +52,7 @@ class YouTube(QMainWindow):
         except:
             pass
 
-        for x in self.songs:
+        for x in session.query(Songs).all():
             if title == x.title:
                 msgbox = QMessageBox.warning(
                     self,
@@ -69,9 +68,9 @@ class YouTube(QMainWindow):
         QMessageBox.information(self, "Success", "Song added successfully")
 
     def add_song_to_list(self, title, url, thumbnail=None):
-        session.add(Song(platform="youtube", title=title, url=url, thumbnail=thumbnail))
+        session.add(Songs(platform="youtube", title=title,
+                    url=url, thumbnail=thumbnail))
         session.commit()
-        self.songs = session.query(Song).all()
 
     def closeEvent(self, event):
         self.window_closed.emit()

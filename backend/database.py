@@ -3,11 +3,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 
-engine = create_engine('sqlite:///backend/songs.sqlite', echo=True)
+engine = create_engine('sqlite:///backend/songs.sqlite')
 base = declarative_base()
 
 
-class Song(base):
+class Songs(base):
     __tablename__ = 'songs'
     id = Column(Integer, primary_key=True)
     platform = Column(String)

@@ -6,3 +6,4 @@ session.execute(
 session.commit()
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
+os.add_dll_directory(ROOT + r"\assets\dll")
