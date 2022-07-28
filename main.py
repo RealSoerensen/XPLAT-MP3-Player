@@ -1,28 +1,29 @@
+import sys
+import os
+import random
+from typing import final
+
 try:
     import requests
     from PyQt5.QtWidgets import *
     from PyQt5.QtMultimedia import *
     from PyQt5.QtGui import *
     from PyQt5.QtCore import *
-    import sys
-    import os
     import __init__
-    import random
-    from platforms import spotify, youtube, soundcloud
     from backend.database import session, Songs
     from backend.player import Player
-    import vlc
+    from platforms import spotify, youtube, soundcloud
 except ImportError as e:
-    print(e)
-    sys.exit(1)
+    os.system("pip install -r requirements.txt")
 
 
 class Window(QMainWindow):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         super().__init__()
 
         self.setGeometry(300, 300, 600, 400)
         self.setWindowTitle("X-Platform Music Player")
+        self._player = Player()
         self.UiComponents()
 
         self.show()
@@ -66,7 +67,7 @@ class Window(QMainWindow):
 
         self.play_btn = QPushButton(self)
         self.play_btn.setGeometry(150, 275, 100, 100)
-        self.play_btn.clicked.connect(self.init_vlc)
+        self.play_btn.clicked.connect(self.get_song)
         self.play_btn.setIcon(QIcon("./assets/play.png"))
         self.play_btn.setIconSize(QSize(100, 100))
 
@@ -139,34 +140,29 @@ class Window(QMainWindow):
     def prev_song(self):
         pass
 
-    def init_vlc(self):
+    def get_song(self):
         self.song = self.song_widget.currentItem().data(Qt.UserRole)
+        self._player.player.set_pause(1)
+        self._player.get_song(self.song)
         self.get_image(self.song.thumbnail)
-        self.instance = vlc.Instance()
-        self.instance.log_unset()
-        self.player = self.instance.media_player_new()
-        if self.song.platform == "youtube":
-            Player.YouTube(self.player, self.song, self.instance)
-            self.play_song()
-
-        elif self.song.platform == "spotify":
-            pass
-
-        elif self.song.platform == "soundcloud":
-            Player.SoundCloud(self.player, self.song, self.instance)
-            self.play_song()
+        self._player.player.set_pause(0)
+        self.play_song()
 
     def play_song(self):
-        self.player.set_pause(0)
+        self._player.player.set_pause(0)
         self.play_btn.setIcon(QIcon("./assets/pause.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.pause_song)
+        if self.song != self.song_widget.currentItem().data(Qt.UserRole):
+            self.get_song()
 
     def pause_song(self):
-        self.player.set_pause(1)
+        self._player.player.set_pause(1)
         self.play_btn.setIcon(QIcon("./assets/play.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.play_song)
+        if self.song != self.song_widget.currentItem().data(Qt.UserRole):
+            self.get_song()
 
 
 if __name__ == "__main__":
