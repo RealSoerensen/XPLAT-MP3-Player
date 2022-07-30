@@ -3,15 +3,17 @@ import os
 import random
 import requests
 import datetime
+import webbrowser
+from __init__ import ROOT, VERSION, outdated
+from backend.database import session, Songs
+from backend.player import Player
+from backend.platforms import youtube, soundcloud
+from backend.about import About
 from PyQt5.QtWidgets import *
 from PyQt5.QtMultimedia import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import vlc
-import __init__
-from backend.database import session, Songs
-from backend.player import Player
-from backend.platforms import youtube, soundcloud
 
 
 class Window(QMainWindow):
@@ -30,15 +32,28 @@ class Window(QMainWindow):
         # create a menu bar
         menu_bar = self.menuBar()
         add_menu = menu_bar.addMenu("Add")
-        spotify_menu = QAction("From Spotify", self)
-        add_menu.addAction(spotify_menu)
-        spotify_menu.triggered.connect(self.add_spotify)
         yt_menu = QAction("From Youtube", self)
         add_menu.addAction(yt_menu)
         yt_menu.triggered.connect(self.add_yt)
         sc_menu = QAction("From SoundCloud", self)
         add_menu.addAction(sc_menu)
         sc_menu.triggered.connect(self.add_sc)
+
+        control_menu = menu_bar.addMenu("Control")
+        shuffle_menu = QAction("Shuffle", self)
+        control_menu.addAction(shuffle_menu)
+        shuffle_menu.triggered.connect(self.shuffle_music)
+        repeat_menu = QAction("Repeat", self)
+        control_menu.addAction(repeat_menu)
+        repeat_menu.triggered.connect(self.repeat_music)
+
+        about_menu = menu_bar.addMenu("About")
+        project = QAction("About the project", self)
+        about_menu.addAction(project)
+        project.triggered.connect(self.about_project)
+        exit = QAction("Exit", self)
+        about_menu.addAction(exit)
+        exit.triggered.connect(self.close)
 
         self.videoframe = QFrame()
         self.videoframe.setObjectName("videoframe")
@@ -107,6 +122,16 @@ class Window(QMainWindow):
         self.song_widget.setGeometry(400, 25, 175, 330)
         self.song_widget.installEventFilter(self)
 
+        # Create a label for version
+        self.version_label = QLabel(self)
+        self.version_label.setGeometry(560, 430, 100, 20)
+        self.version_label.setText(f"v{VERSION}")
+        if outdated:
+            self.version_label.setToolTip("Update available")
+            self.version_label.setStyleSheet("color: red")
+            # make label clickable
+            self.version_label.mousePressEvent = self.update_available
+
         self.repeat = False
         self.get_songs()
 
@@ -158,11 +183,6 @@ class Window(QMainWindow):
 
     def repeat_music(self):
         self.repeat = not self.repeat
-
-    def add_spotify(self):
-        self.spotify_win = spotify.Spotify()
-        self.spotify_win.window_closed.connect(self.get_songs)
-        self.spotify_win.show()
 
     def add_yt(self):
         self.yt_win = youtube.YouTube()
@@ -261,7 +281,7 @@ class Window(QMainWindow):
             song = session.query(Songs).filter_by(id=song.id).first()
             # delete song from downloads
             os.remove(
-                rf"{os.path.dirname(os.path.abspath(__file__))}\\assets\\downloads\\{song.title}")
+                rf"{ROOT}\\assets\\downloads\\{song.title}")
             session.delete(song)
             session.commit()
             self.get_songs()
@@ -276,6 +296,18 @@ class Window(QMainWindow):
                 self.delete_song()
                 return True
         return super().eventFilter(source, event)
+
+    def update_available(self, event):
+        webbrowser.open(
+            "https://github.com/RealSoerensen/XPLAT-MusicPlayer")
+
+    def about_project(self):
+        self.about_win = About()
+        self.about_win.show()
+
+    def close(self):
+        self._player.player.stop()
+        sys.exit()
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
-from fileinput import filename
+from urllib import response
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from sclib import SoundcloudAPI
+from sclib import SoundcloudAPI, Playlist
 import os
 from __init__ import ROOT
 from backend.database import session, Songs
@@ -21,7 +21,7 @@ class SoundCloud(QWidget):
 
     def UIComponents(self):
         self.title = QLabel(self)
-        self.title.setText("Enter a SoundCloud URL")
+        self.title.setText("Enter a URL/Playlist URL")
         self.title.setFont(QFont("Arial", 20))
         self.title.move(10, 10)
         self.title.resize(300, 30)
@@ -40,10 +40,19 @@ class SoundCloud(QWidget):
         url = self.input.text()
         self.input.clear()
         api = SoundcloudAPI()
-        track = api.resolve(url)
+        response = api.resolve(url)
+        print(response)
+        if type(response) is Playlist:
+            for track in response.tracks:
+                self.add_song_to_list(track, track.artwork_url)
+        else:
+            self.add_song_to_list(response, response.artwork_url)
+
+    def add_song_to_list(self, track, thumbnail=None):
         filename = f"{track.artist} - {track.title}.mp3"
         if "/" or "\\" in filename:
             filename = filename.replace("/", "").replace("\\", "")
+
         path = rf"{ROOT}\\assets\\downloads\\{filename}"
         if os.path.exists(path):
             msgbox = QMessageBox.warning(
@@ -58,15 +67,10 @@ class SoundCloud(QWidget):
         with open(path, 'wb+') as fp:
             track.write_mp3_to(fp)
 
-        self.add_song_to_list(
-            filename, path, track.artwork_url)
-
-        QMessageBox.information(self, "Success", "Song added successfully")
-
-    def add_song_to_list(self, title, path, thumbnail=None):
-        session.add(Songs(online=False, title=title,
+        session.add(Songs(online=False, title=filename,
                     url=path, thumbnail=thumbnail))
         session.commit()
+        QMessageBox.information(self, "Success", "Song(s) added")
 
     def closeEvent(self, event):
         self.window_closed.emit()
