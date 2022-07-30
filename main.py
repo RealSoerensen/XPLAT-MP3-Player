@@ -105,6 +105,7 @@ class Window(QMainWindow):
         # Create widget with songs
         self.song_widget = QListWidget(self)
         self.song_widget.setGeometry(400, 25, 175, 330)
+        self.song_widget.installEventFilter(self)
 
         self.repeat = False
         self.get_songs()
@@ -252,6 +253,29 @@ class Window(QMainWindow):
 
     def volume_change(self):
         self._player.player.audio_set_volume(self.volume_slider.value())
+
+    def delete_song(self):
+        try:
+            song = self.song_widget.currentItem().data(Qt.UserRole)
+            # get song in database
+            song = session.query(Songs).filter_by(id=song.id).first()
+            # delete song from downloads
+            os.remove(
+                rf"{os.path.dirname(os.path.abspath(__file__))}\\assets\\downloads\\{song.title}")
+            session.delete(song)
+            session.commit()
+            self.get_songs()
+        except AttributeError:
+            pass
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.ContextMenu and source is self.song_widget:
+            menu = QMenu()
+            menu.addAction("Delete")
+            if menu.exec_(event.globalPos()):
+                self.delete_song()
+                return True
+        return super().eventFilter(source, event)
 
 
 if __name__ == "__main__":
