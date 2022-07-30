@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 import random
 import requests
 import datetime
@@ -19,9 +20,9 @@ import vlc
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
-
         self.setGeometry(300, 300, 600, 450)
-        self.setWindowTitle("X-Platform Music Player")
+        self.setFixedSize(self.size())
+        self.setWindowTitle("XPLAT Music Player")
         self._player = Player()
         self.UiComponents()
 
@@ -68,7 +69,6 @@ class Window(QMainWindow):
         # Create slider for song
         self.progress_bar = QSlider(Qt.Horizontal, self)
         self.progress_bar.setGeometry(125, 275, 250, 30)
-        self.progress_bar.setRange(0, 100)
         self.progress_bar.setTickInterval(1000)
         self.progress_bar.setValue(0)
 
@@ -229,39 +229,23 @@ class Window(QMainWindow):
         self.timer.timeout.connect(self.update_slider)
         self.timer.start(200)
 
-        # Get total lenght of player
-        lenght = self._player.player.get_length()
-        self.progress_bar.setRange(0, int(lenght))
-
         self.play_song()
-        # If song ended, play next song
-        if self._player.player.get_state() == vlc.State.Ended:
-            self.next_song()
 
     def play_song(self):
         self._player.player.set_pause(0)
         self.play_btn.setIcon(QIcon("./assets/pause.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.pause_song)
-        try:
-            if self.song != self.song_widget.currentItem().data(Qt.UserRole):
-                self.get_song()
-        except AttributeError:
-            pass
 
     def pause_song(self):
         self._player.player.set_pause(1)
         self.play_btn.setIcon(QIcon("./assets/play.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.play_song)
-        try:
-            if self.song != self.song_widget.currentItem().data(Qt.UserRole):
-                self.get_song()
-        except AttributeError:
-            pass
 
     def update_slider(self):
-
+        length = self._player.player.get_length()
+        self.progress_bar.setRange(0, length)
         self.progress_bar.setValue(self._player.player.get_time())
 
         # Update progress_bar with current time
@@ -270,6 +254,15 @@ class Window(QMainWindow):
         self.total_time = str(datetime.timedelta(
             seconds=int(self._player.player.get_length() / 1000)))[2:]
         self.time_label.setText(f"{self.time} / {self.total_time}")
+
+        if self.progress_bar.value()+400 >= length:
+            self.next_song()
+
+        try:
+            if self.song != self.song_widget.currentItem().data(Qt.UserRole):
+                self.get_song()
+        except AttributeError:
+            pass
 
     def volume_change(self):
         self._player.player.audio_set_volume(self.volume_slider.value())

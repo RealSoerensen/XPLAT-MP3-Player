@@ -13,6 +13,7 @@ class YouTube(QMainWindow):
         super().__init__()
 
         self.setGeometry(300, 300, 300, 300)
+        self.setFixedSize(self.size())
         self.setWindowTitle("Add from YouTube")
 
         self.UIComponents()

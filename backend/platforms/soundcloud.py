@@ -15,6 +15,7 @@ class SoundCloud(QWidget):
         super().__init__()
 
         self.setGeometry(300, 300, 300, 300)
+        self.setFixedSize(self.size())
         self.setWindowTitle("Add from SoundCloud")
 
         self.UIComponents()

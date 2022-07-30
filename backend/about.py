@@ -8,6 +8,7 @@ class About(QMainWindow):
         super().__init__()
 
         self.setGeometry(300, 300, 300, 350)
+        self.setFixedSize(self.size())
         self.setWindowTitle("Add from YouTube")
 
         self.UIComponents()
