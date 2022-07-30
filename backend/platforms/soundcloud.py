@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from sclib import SoundcloudAPI, Track, Playlist
+from sclib import SoundcloudAPI
 import os
 from __init__ import ROOT
 from backend.database import session, Songs

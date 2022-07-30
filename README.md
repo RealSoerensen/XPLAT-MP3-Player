@@ -10,16 +10,9 @@ See [TODO](TODO.md) for upcoming features.
 
 If you think the project is interesting, don't hesistate making a PR.
 
-## Requirements
-
-- [`Python 3.6+`](https://www.python.org/downloads/)
-- [`PyQt5`](https://www.riverbankcomputing.com/software/pyqt/download5)
-- [`youtube-dl`](https://rg3.github.io/youtube-dl/)
-- [`Python-VLC`](https://www.videolan.org/vlc/index.html)
-- [`requests`](https://requests.readthedocs.io/en/master/)
-- [`pafy`](https://pafy.readthedocs.io/en/latest/)
-
 ## Installation
+
+First you need [`Python`](https://www.python.org/downloads/) version 3.6+ or higher.
 
 Most of the dependencies can be installed by running
 
