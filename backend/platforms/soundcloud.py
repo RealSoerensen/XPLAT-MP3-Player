@@ -1,3 +1,4 @@
+from fileinput import filename
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -36,10 +37,14 @@ class SoundCloud(QWidget):
         self.add_btn.clicked.connect(self.add_song)
 
     def add_song(self):
+        url = self.input.text()
+        self.input.clear()
         api = SoundcloudAPI()
-        track = api.resolve(self.input.text())
+        track = api.resolve(url)
         filename = f"{track.artist} - {track.title}.mp3"
-        path = rf"{ROOT}\assets\downloads\{filename}"
+        if "/" or "\\" in filename:
+            filename = filename.replace("/", "").replace("\\", "")
+        path = rf"{ROOT}\\assets\\downloads\\{filename}"
         if os.path.exists(path):
             msgbox = QMessageBox.warning(
                 self,
@@ -54,12 +59,12 @@ class SoundCloud(QWidget):
             track.write_mp3_to(fp)
 
         self.add_song_to_list(
-            track.title, path, track.artwork_url)
+            filename, path, track.artwork_url)
 
         QMessageBox.information(self, "Success", "Song added successfully")
 
     def add_song_to_list(self, title, path, thumbnail=None):
-        session.add(Songs(platform="soundcloud", title=title,
+        session.add(Songs(online=False, title=title,
                     url=path, thumbnail=thumbnail))
         session.commit()
 

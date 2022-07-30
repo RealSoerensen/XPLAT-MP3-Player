@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-import pafy
+from __init__ import ROOT
 from backend.database import session, Songs
+import youtube_dl
 
 
 class YouTube(QMainWindow):
@@ -41,19 +42,10 @@ class YouTube(QMainWindow):
             QMessageBox.warning(self, "Warning", "Please enter a URL")
             return
 
-        try:
-            video = pafy.new(url)
-        except Exception:
-            QMessageBox.warning(self, "Warning", "Invalid URL")
-            return
-        try:
-            title = video.title
-            thumbnail = video.thumb
-        except:
-            pass
+        video_info = youtube_dl.YoutubeDL().extract_info(url=url, download=False)
 
         for x in session.query(Songs).all():
-            if title == x.title:
+            if video_info['title'] == x.title:
                 msgbox = QMessageBox.warning(
                     self,
                     "Warning",
@@ -63,14 +55,38 @@ class YouTube(QMainWindow):
                 if msgbox == QMessageBox.No:
                     return
 
-        self.add_song_to_list(title, url, thumbnail)
+        choice = QMessageBox.question(
+            self, "Question", "Yes: Download\nNo: Online", QMessageBox.Yes | QMessageBox.No)
 
-        QMessageBox.information(self, "Success", "Song added successfully")
+        if choice == QMessageBox.Yes:
 
-    def add_song_to_list(self, title, url, thumbnail=None):
-        session.add(Songs(platform="youtube", title=title,
+            filename = f"{video_info['title']}.mp3"
+            full_url = f"{ROOT}\\assets\\downloads{filename}"
+            options = {
+                'format': 'bestaudio/best',
+                'keepvideo': False,
+                'outtmpl': f"{ROOT}\\assets\\downloads\\{filename}",
+            }
+
+            try:
+                with youtube_dl.YoutubeDL(options) as ydl:
+                    ydl.download([video_info['webpage_url']])
+            except Exception:
+                QMessageBox.warning(self, "Warning", "Error downloading song")
+                return
+
+            self.add_song_to_list(
+                False, video_info['title'], full_url, None)
+
+        elif choice == QMessageBox.No:
+            self.add_song_to_list(
+                True, video_info['title'], video_info["webpage_url"], video_info['thumbnail'])
+
+    def add_song_to_list(self, online, title, url, thumbnail=None):
+        session.add(Songs(online=online, title=title,
                     url=url, thumbnail=thumbnail))
         session.commit()
+        QMessageBox.information(self, "Success", "Song added successfully")
 
     def closeEvent(self, event):
         self.window_closed.emit()

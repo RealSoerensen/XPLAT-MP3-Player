@@ -11,7 +11,7 @@ import vlc
 import __init__
 from backend.database import session, Songs
 from backend.player import Player
-from backend.platforms import spotify, youtube, soundcloud
+from backend.platforms import youtube, soundcloud
 
 
 class Window(QMainWindow):
@@ -40,6 +40,10 @@ class Window(QMainWindow):
         add_menu.addAction(sc_menu)
         sc_menu.triggered.connect(self.add_sc)
 
+        self.videoframe = QFrame()
+        self.videoframe.setObjectName("videoframe")
+        self.videoframe.setAutoFillBackground(True)
+
         # Create Image Label
         self.image = QLabel(self)
         self.image.setGeometry(100, 50, 200, 200)
@@ -50,7 +54,6 @@ class Window(QMainWindow):
         self.progress_bar = QSlider(Qt.Horizontal, self)
         self.progress_bar.setGeometry(125, 275, 250, 30)
         self.progress_bar.setRange(0, 100)
-        self.progress_bar.setTickPosition(QSlider.TicksBelow)
         self.progress_bar.setTickInterval(1000)
         self.progress_bar.setValue(0)
 
@@ -65,7 +68,6 @@ class Window(QMainWindow):
         self.volume_slider.setGeometry(25, 275, 75, 30)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
-        self.volume_slider.setTickPosition(QSlider.TicksBelow)
         self.volume_slider.setTickInterval(10)
         self.volume_slider.valueChanged.connect(self.volume_change)
 
@@ -130,8 +132,6 @@ class Window(QMainWindow):
         except Exception:
             self.image.setPixmap(default)
 
-        self.image.repaint()
-
     def get_songs(self):
         self.song_widget.clear()
         self.songs = session.query(Songs).all()
@@ -191,13 +191,18 @@ class Window(QMainWindow):
             self.song = self.song_widget.currentItem().data(Qt.UserRole)
             self.current_row = self.song_widget.currentRow()
         except AttributeError:
-            self.current_row = 0
-            self.song_widget.setCurrentRow(self.current_row)
-            self.song = self.song_widget.currentItem().data(Qt.UserRole)
+            if len(self.songs) != 0:
+                self.current_row = 0
+                self.song_widget.setCurrentRow(self.current_row)
+                self.song = self.song_widget.currentItem().data(Qt.UserRole)
+            else:
+                return
 
         self._player.player.set_pause(1)
         self._player.get_song(self.song)
         self.get_image(self.song.thumbnail)
+
+        self._player.player.set_hwnd(self.videoframe.winId())
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_slider)
@@ -217,20 +222,24 @@ class Window(QMainWindow):
         self.play_btn.setIcon(QIcon("./assets/pause.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.pause_song)
-        if self.song != self.song_widget.currentItem().data(Qt.UserRole):
-            self.get_song()
+        try:
+            if self.song != self.song_widget.currentItem().data(Qt.UserRole):
+                self.get_song()
+        except AttributeError:
+            pass
 
     def pause_song(self):
         self._player.player.set_pause(1)
         self.play_btn.setIcon(QIcon("./assets/play.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.play_song)
-        if self.song != self.song_widget.currentItem().data(Qt.UserRole):
-            self.get_song()
+        try:
+            if self.song != self.song_widget.currentItem().data(Qt.UserRole):
+                self.get_song()
+        except AttributeError:
+            pass
 
     def update_slider(self):
-        if self.progress_bar.value() == int(self._player.player.get_length()):
-            self.next_song()
 
         self.progress_bar.setValue(self._player.player.get_time())
 
