@@ -1,6 +1,5 @@
 import sys
 import os
-import time
 import random
 import requests
 import datetime
@@ -8,13 +7,11 @@ import webbrowser
 from __init__ import ROOT, VERSION, outdated
 from backend.database import session, Songs
 from backend.player import Player
-from backend.platforms import youtube, soundcloud
+from backend.platforms import soundcloud, youtube
 from backend.about import About
-from PyQt5.QtWidgets import *
-from PyQt5.QtMultimedia import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-import vlc
+from PyQt5.QtWidgets import QMessageBox, QPushButton, QFrame, QListWidget, QMenu, QLabel, QAction, QSlider, QApplication, QMainWindow
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt, QTimer, QSize, QEvent
 
 
 class Window(QMainWindow):
@@ -28,7 +25,6 @@ class Window(QMainWindow):
 
         self.show()
 
-    # method for widgets
     def UiComponents(self):
         # create a menu bar
         menu_bar = self.menuBar()
@@ -69,7 +65,7 @@ class Window(QMainWindow):
         # Create slider for song
         self.progress_bar = QSlider(Qt.Horizontal, self)
         self.progress_bar.setGeometry(125, 275, 250, 30)
-        self.progress_bar.setTickInterval(1000)
+        self.progress_bar.setTickInterval(100)
         self.progress_bar.setValue(0)
 
         self.time_label = QLabel(self)
@@ -167,9 +163,6 @@ class Window(QMainWindow):
                 Qt.UserRole, song
             )
 
-    def get_queue(self):
-        pass
-
     def shuffle_music(self):
         self.song_widget.clear()
         new_list = random.sample(self.songs, len(self.songs))
@@ -212,12 +205,11 @@ class Window(QMainWindow):
             self.song = self.song_widget.currentItem().data(Qt.UserRole)
             self.current_row = self.song_widget.currentRow()
         except AttributeError:
-            if len(self.songs) != 0:
-                self.current_row = 0
-                self.song_widget.setCurrentRow(self.current_row)
-                self.song = self.song_widget.currentItem().data(Qt.UserRole)
-            else:
+            if len(self.songs) == 0:
                 return
+            self.current_row = 0
+            self.song_widget.setCurrentRow(self.current_row)
+            self.song = self.song_widget.currentItem().data(Qt.UserRole)
 
         self._player.player.set_pause(1)
         self._player.get_song(self.song)
@@ -255,7 +247,7 @@ class Window(QMainWindow):
             seconds=int(self._player.player.get_length() / 1000)))[2:]
         self.time_label.setText(f"{self.time} / {self.total_time}")
 
-        if self.progress_bar.value()+400 >= length:
+        if self.progress_bar.value()+150 >= self._player.player.get_length():
             self.next_song()
 
         try:
@@ -290,7 +282,7 @@ class Window(QMainWindow):
                 return True
         return super().eventFilter(source, event)
 
-    def update_available(self, event):
+    def update_available(self, _):
         webbrowser.open(
             "https://github.com/RealSoerensen/XPLAT-MusicPlayer")
 

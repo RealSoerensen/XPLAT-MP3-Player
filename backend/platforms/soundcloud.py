@@ -1,7 +1,6 @@
-from urllib import response
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QMessageBox, QPushButton, QLabel, QWidget, QLineEdit
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import pyqtSignal
 from sclib import SoundcloudAPI, Playlist
 import os
 from __init__ import ROOT
@@ -23,7 +22,7 @@ class SoundCloud(QWidget):
     def UIComponents(self):
         self.title = QLabel(self)
         self.title.setText("Enter a URL/Playlist URL")
-        self.title.setFont(QFont("Arial", 20))
+        self.title.setFont(QFont("Arial", 14))
         self.title.move(10, 10)
         self.title.resize(300, 30)
 

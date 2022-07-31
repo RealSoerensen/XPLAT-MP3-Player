@@ -1,12 +1,12 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QMessageBox, QPushButton, QLabel, QWidget, QLineEdit
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import pyqtSignal
 from __init__ import ROOT
 from backend.database import session, Songs
 import youtube_dl
 
 
-class YouTube(QMainWindow):
+class YouTube(QWidget):
     window_closed = pyqtSignal()
 
     def __init__(self, *args, **kwargs):

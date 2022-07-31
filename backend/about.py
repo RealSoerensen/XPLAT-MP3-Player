@@ -1,9 +1,8 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt5.QtWidgets import QPushButton, QLabel, QWidget
+from PyQt5.QtGui import QFont
 
 
-class About(QMainWindow):
+class About(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__()
 
