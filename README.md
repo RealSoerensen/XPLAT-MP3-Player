@@ -12,7 +12,7 @@ If you think the project is interesting, don't hesistate making a PR.
 
 ## Installation
 
-First you need [`Python`](https://www.python.org/downloads/) version 3.6+ or higher.
+First you need [`Python`](https://www.python.org/downloads/) version 3.8+ or higher.
 
 Most of the dependencies can be installed by running
 
