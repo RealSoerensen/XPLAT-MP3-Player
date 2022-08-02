@@ -90,31 +90,31 @@ class Window(QMainWindow):
         self.prev_btn = QPushButton(self)
         self.prev_btn.setGeometry(25, 325, 100, 100)
         self.prev_btn.clicked.connect(self.prev_song)
-        self.prev_btn.setIcon(QIcon("./assets/prev.png"))
+        self.prev_btn.setIcon(QIcon(f"{ROOT}/assets/prev.png"))
         self.prev_btn.setIconSize(QSize(100, 100))
 
         self.play_btn = QPushButton(self)
         self.play_btn.setGeometry(150, 325, 100, 100)
         self.play_btn.clicked.connect(self.get_song)
-        self.play_btn.setIcon(QIcon("./assets/play.png"))
+        self.play_btn.setIcon(QIcon(f"{ROOT}/assets/play.png"))
         self.play_btn.setIconSize(QSize(100, 100))
 
         next_btn = QPushButton(self)
         next_btn.setGeometry(275, 325, 100, 100)
         next_btn.clicked.connect(self.next_song)
-        next_btn.setIcon(QIcon("./assets/next.png"))
+        next_btn.setIcon(QIcon(f"{ROOT}/assets/next.png"))
         next_btn.setIconSize(QSize(100, 100))
 
         shuffle_btn = QPushButton(self)
         shuffle_btn.setGeometry(425, 375, 50, 50)
         shuffle_btn.clicked.connect(self.shuffle_music)
-        shuffle_btn.setIcon(QIcon("./assets/shuffle.png"))
+        shuffle_btn.setIcon(QIcon(f"{ROOT}/assets/shuffle.png"))
         shuffle_btn.setIconSize(QSize(50, 50))
 
         repeat_btn = QPushButton(self)
         repeat_btn.setGeometry(500, 375, 50, 50)
         repeat_btn.clicked.connect(self.repeat_music)
-        repeat_btn.setIcon(QIcon("./assets/repeat.png"))
+        repeat_btn.setIcon(QIcon(f"{ROOT}/assets/repeat.png"))
         repeat_btn.setIconSize(QSize(50, 50))
 
         # Create widget with songs
@@ -136,7 +136,7 @@ class Window(QMainWindow):
         self.get_songs()
 
     def get_image(self, url=None):
-        default = QPixmap("./assets/default.png")
+        default = QPixmap(f"{ROOT}/assets/default.png")
         if url is None:
             self.image.setPixmap(default)
             self.image.repaint()
@@ -149,11 +149,11 @@ class Window(QMainWindow):
                 self.image.setPixmap(default)
 
             else:
-                with open("./assets/thumbnail.png", "wb") as f:
+                with open(f"{ROOT}/assets/thumbnail.png", "wb") as f:
                     f.write(thumbnail.content)
-                self.image.setPixmap(QPixmap("./assets/thumbnail.png"))
+                self.image.setPixmap(QPixmap(f"{ROOT}/assets/thumbnail.png"))
                 self.image.keepAspectRatio = False
-                os.remove("./assets/thumbnail.png")
+                os.remove(f"{ROOT}/assets/thumbnail.png")
 
         except Exception:
             self.image.setPixmap(default)
@@ -219,7 +219,7 @@ class Window(QMainWindow):
             self.song = self.song_widget.currentItem().data(Qt.UserRole)
 
         self._player.player.set_pause(1)
-        self._player.get_song(self.song)
+        self._player.LocalPlayer(self.song)
         self.get_image(self.song.thumbnail)
 
         self._player.player.set_hwnd(self.videoframe.winId())
@@ -232,13 +232,13 @@ class Window(QMainWindow):
 
     def play_song(self):
         self._player.player.set_pause(0)
-        self.play_btn.setIcon(QIcon("./assets/pause.png"))
+        self.play_btn.setIcon(QIcon(f"{ROOT}/assets/pause.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.pause_song)
 
     def pause_song(self):
         self._player.player.set_pause(1)
-        self.play_btn.setIcon(QIcon("./assets/play.png"))
+        self.play_btn.setIcon(QIcon(f"{ROOT}/assets/play.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.play_song)
 

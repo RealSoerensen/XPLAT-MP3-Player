@@ -4,6 +4,7 @@ from PyQt5.QtCore import pyqtSignal
 from __init__ import ROOT
 from backend.database import session, Songs
 import youtube_dl
+import threading
 
 
 class YouTube(QWidget):
@@ -35,6 +36,11 @@ class YouTube(QWidget):
         self.add_btn.resize(280, 30)
         self.add_btn.clicked.connect(self.add_song)
 
+        self.download_status = QLabel(self)
+        self.download_status.setText("")
+        self.download_status.move(10, 130)
+        self.download_status.resize(280, 30)
+
     def add_song(self):
         url = self.input.text()
         self.input.clear()
@@ -56,19 +62,13 @@ class YouTube(QWidget):
                 if msgbox == QMessageBox.No:
                     return
 
-        choice = QMessageBox.question(
-            self, "Question", "Yes: Download\nNo: Online", QMessageBox.Yes | QMessageBox.No)
-
-        if choice == QMessageBox.Yes:
-
             filename = f"{video_info['title']}.mp3"
-            full_url = f"{ROOT}\\assets\\downloads{filename}"
+
             options = {
                 'format': 'bestaudio/best',
                 'keepvideo': False,
                 'outtmpl': f"{ROOT}\\assets\\downloads\\{filename}",
             }
-
             try:
                 with youtube_dl.YoutubeDL(options) as ydl:
                     ydl.download([video_info['webpage_url']])
@@ -77,14 +77,10 @@ class YouTube(QWidget):
                 return
 
             self.add_song_to_list(
-                False, video_info['title'], full_url, None)
+                video_info['title'], f"{ROOT}\\assets\\downloads\\{filename}", None)
 
-        elif choice == QMessageBox.No:
-            self.add_song_to_list(
-                True, video_info['title'], video_info["webpage_url"], video_info['thumbnail'])
-
-    def add_song_to_list(self, online, title, url, thumbnail=None):
-        session.add(Songs(online=online, title=title,
+    def add_song_to_list(self, title, url, thumbnail=None):
+        session.add(Songs(title=title,
                     url=url, thumbnail=thumbnail))
         session.commit()
         QMessageBox.information(self, "Success", "Song added successfully")
