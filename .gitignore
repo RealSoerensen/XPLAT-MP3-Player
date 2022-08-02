@@ -2,3 +2,5 @@ Pipfile
 Pipfile.lock
 backend/songs.sqlite
 assets/downloads/
+*\__pycache__
+backend/config.ini

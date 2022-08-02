@@ -10,7 +10,7 @@ from backend.database import session, Songs
 class SoundCloud(QWidget):
     window_closed = pyqtSignal()
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         super().__init__()
 
         self.setGeometry(300, 300, 300, 300)
@@ -40,8 +40,12 @@ class SoundCloud(QWidget):
         url = self.input.text()
         self.input.clear()
         api = SoundcloudAPI()
-        response = api.resolve(url)
-        print(response)
+        try:
+            response = api.resolve(url)
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"{e}", QMessageBox.Ok)
+            return
+
         if type(response) is Playlist:
             for track in response.tracks:
                 self.add_song_to_list(track, track.artwork_url)

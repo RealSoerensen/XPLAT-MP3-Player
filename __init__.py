@@ -1,30 +1,37 @@
 from backend.database import session, Songs
 import os
 import requests
-import webbrowser
 import sys
 from PyQt5.QtWidgets import *
+from configparser import ConfigParser
 
-VERSION = "0.1.0"
-# Check if version is up to date
-
+VERSION = "0.1.1"
+ROOT = os.path.dirname(os.path.abspath(__file__))
 r = requests.get("https://aboutme.soerensen.repl.co/version.txt")
+
+if not os.path.exists(f"{ROOT}\\config.ini"):
+    config = ConfigParser()
+    config.add_section("Settings")
+    config.set("Settings", "launch_on_startup", "False")
+    with open(f"{ROOT}\\backend\\config.ini", "w") as configfile:
+        config.write(configfile)
+
+app = QApplication(sys.argv)
+try:
+    with open("./Assets/stylesheet", "r") as f:
+        app.setStyleSheet(f.read())
+except FileNotFoundError:
+    QMessageBox.warning(None, "Error", "Could not load stylesheet")
+    app.Exit()
+
 outdated = False
 if r.text != VERSION:
     outdated = True
-    app = QApplication(sys.argv)
-    msgbox = QMessageBox.warning(
-        None,
-        "Warning",
-        f"Version {r.text} is available.\nDo you wish to update?",
-        QMessageBox.Yes | QMessageBox.No,
-    )
-    if msgbox == QMessageBox.Yes:
-        webbrowser.open("https://github.com/RealSoerensen/XPLAT-MusicPlayer")
-        exit()
+    from backend.update_check import UpdateCheckWindow
+    update_check_window = UpdateCheckWindow()
+    update_check_window.show()
+    app.exec_()
 
-
-ROOT = os.path.dirname(os.path.abspath(__file__))
 
 session.execute(
     "CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, online BOOLEAN, title TEXT, url TEXT, thumbnail TEXT)")

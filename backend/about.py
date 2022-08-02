@@ -3,7 +3,7 @@ from PyQt5.QtGui import QFont
 
 
 class About(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         super().__init__()
 
         self.setGeometry(300, 300, 300, 350)
@@ -42,5 +42,4 @@ I hope you enjoy the project!
         self.close_btn.clicked.connect(self.close_window)
 
     def close_window(self):
-        self.window_closed.emit()
         self.close()

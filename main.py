@@ -4,11 +4,12 @@ import random
 import requests
 import datetime
 import webbrowser
-from __init__ import ROOT, VERSION, outdated
+from __init__ import ROOT, VERSION, outdated, app
 from backend.database import session, Songs
 from backend.player import Player
 from backend.platforms import soundcloud, youtube
 from backend.about import About
+from backend.settings import Settings
 from PyQt5.QtWidgets import QMessageBox, QPushButton, QFrame, QListWidget, QMenu, QLabel, QAction, QSlider, QApplication, QMainWindow
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt, QTimer, QSize, QEvent
@@ -44,7 +45,10 @@ class Window(QMainWindow):
         control_menu.addAction(repeat_menu)
         repeat_menu.triggered.connect(self.repeat_music)
 
-        about_menu = menu_bar.addMenu("About")
+        about_menu = menu_bar.addMenu("Options")
+        settings = QAction("Settings", self)
+        about_menu.addAction(settings)
+        settings.triggered.connect(self.settings)
         project = QAction("About the project", self)
         about_menu.addAction(project)
         project.triggered.connect(self.about_project)
@@ -156,12 +160,15 @@ class Window(QMainWindow):
 
     def get_songs(self):
         self.song_widget.clear()
-        self.songs = session.query(Songs).all()
-        for song in self.songs:
-            self.song_widget.addItem(song.title)
-            self.song_widget.item(self.song_widget.count() - 1).setData(
-                Qt.UserRole, song
-            )
+        try:
+            self.songs = session.query(Songs).all()
+            for song in self.songs:
+                self.song_widget.addItem(song.title)
+                self.song_widget.item(self.song_widget.count() - 1).setData(
+                    Qt.UserRole, song
+                )
+        except Exception:
+            return
 
     def shuffle_music(self):
         self.song_widget.clear()
@@ -172,7 +179,7 @@ class Window(QMainWindow):
                 Qt.UserRole, song
             )
         self.songs = new_list
-        self.current_row = 0
+        self.get_song()
 
     def repeat_music(self):
         self.repeat = not self.repeat
@@ -247,7 +254,7 @@ class Window(QMainWindow):
             seconds=int(self._player.player.get_length() / 1000)))[2:]
         self.time_label.setText(f"{self.time} / {self.total_time}")
 
-        if self.progress_bar.value()+150 >= self._player.player.get_length():
+        if int(self._player.player.get_time() / 1000) == int(self._player.player.get_length() / 1000):
             self.next_song()
 
         try:
@@ -286,6 +293,10 @@ class Window(QMainWindow):
         webbrowser.open(
             "https://github.com/RealSoerensen/XPLAT-MusicPlayer")
 
+    def settings(self):
+        self.settings_win = Settings()
+        self.settings_win.show()
+
     def about_project(self):
         self.about_win = About()
         self.about_win.show()
@@ -296,13 +307,5 @@ class Window(QMainWindow):
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    try:
-        with open("./Assets/stylesheet", "r") as f:
-            app.setStyleSheet(f.read())
-    except FileNotFoundError:
-        QMessageBox.warning(None, "Error", "Could not load stylesheet")
-        app.Exit()
-
     window = Window()
     sys.exit(app.exec_())
