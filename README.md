@@ -20,16 +20,12 @@ Most of the dependencies can be installed by running
 pip install -r requirements.txt
 ```
 
-However, Pafy and SoundCloud-lib is currently outdated and we are currently using a fork of it.
+However, Pafy is currently outdated and we are currently using a fork of it.
 
 Install the missing library by running:
 
 ```sh
 pip install git+https://github.com/Cupcakus/pafy
-```
-
-```sh
-pip install git+https://github.com/3jackdaws/soundcloud-lib.git
 ```
 
 ## Bugs

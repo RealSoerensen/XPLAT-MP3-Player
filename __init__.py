@@ -1,15 +1,15 @@
 from backend.database import session, Songs
-from configparser import ConfigParser
-from PyQt5.QtWidgets import QApplication, QMessageBox
-import sys
-import requests
 import os
+import requests
+import sys
+from PyQt5.QtWidgets import *
+from configparser import ConfigParser
+
+VERSION = "0.1.1"
 ROOT = os.path.dirname(os.path.abspath(__file__))
-
-
-VERSION = "0.1.2"
 r = requests.get("https://aboutme.soerensen.repl.co/version.txt")
-if not os.path.exists(f"{ROOT}\\backend\\config.ini"):
+
+if not os.path.exists(f"{ROOT}\\config.ini"):
     config = ConfigParser()
     config.add_section("Settings")
     config.set("Settings", "launch_on_startup", "False")
@@ -18,7 +18,7 @@ if not os.path.exists(f"{ROOT}\\backend\\config.ini"):
 
 app = QApplication(sys.argv)
 try:
-    with open(rf"{ROOT}\\assets\\stylesheet", "r") as f:
+    with open("./Assets/stylesheet", "r") as f:
         app.setStyleSheet(f.read())
 except FileNotFoundError:
     QMessageBox.warning(None, "Error", "Could not load stylesheet")
@@ -34,16 +34,16 @@ if r.text != VERSION:
 
 
 session.execute(
-    "CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, title TEXT, url TEXT, thumbnail TEXT)")
+    "CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, online BOOLEAN, title TEXT, url TEXT, thumbnail TEXT)")
 session.commit()
 
-os.add_dll_directory(rf"{ROOT}\\assets\\dll")
+os.add_dll_directory(ROOT + r"\\assets\\dll")
 
-for song in os.listdir(rf"{ROOT}\\assets\\downloads"):
+for song in os.listdir(ROOT + r"\\assets\\downloads"):
     if song.endswith(".part"):
-        os.remove(rf"{ROOT}\\assets\\downloads\\" + song)
+        os.remove(ROOT + r"\\assets\\downloads\\" + song)
     if song.endswith(".mp3") and session.query(Songs).filter(Songs.title == song).first() is None:
-        session.add(Songs(title=song,
-                    url=rf"{ROOT}\\assets\\downloads\\{song}"))
+        session.add(Songs(online=False, title=song,
+                    url=f"{ROOT}\\assets\\downloads\\{song}"))
         session.commit()
         print(f"Added {song}")

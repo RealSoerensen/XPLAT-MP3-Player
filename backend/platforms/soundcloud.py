@@ -48,25 +48,12 @@ class SoundCloud(QWidget):
 
         if type(response) is Playlist:
             for track in response.tracks:
-                try:
-                    thumbnail = track.artwork_url()
-                except Exception:
-                    thumbnail = None
-                self.add_song_to_list(track, thumbnail)
-            return
-        try:
-            thumbnail = track.artwork_url()
-        except Exception:
-            thumbnail = None
-        self.add_song_to_list(response, thumbnail)
+                self.add_song_to_list(track, track.artwork_url)
+        else:
+            self.add_song_to_list(response, response.artwork_url)
 
     def add_song_to_list(self, track, thumbnail=None):
-        try:
-            filename = f"{track.artist} - {track.title}.mp3"
-        except AttributeError:
-            QMessageBox.warning(self, "Error", "Invalid URL", QMessageBox.Ok)
-            return
-
+        filename = f"{track.artist} - {track.title}.mp3"
         if "/" or "\\" in filename:
             filename = filename.replace("/", "").replace("\\", "")
 

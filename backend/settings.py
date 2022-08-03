@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import QPushButton, QLabel, QWidget, QCheckBox, QMessageBox
 from PyQt5.QtGui import QFont
 from __init__ import VERSION, r, session, Songs, ROOT
+import webbrowser
+import sys
 import os
+import winreg as reg
 from configparser import ConfigParser
 from backend.update_check import UpdateCheckWindow
-import getpass
-
-USER_NAME = getpass.getuser()
 
 
 class Settings(QWidget):
@@ -87,16 +87,28 @@ class Settings(QWidget):
                 session.commit()
 
     def launch_on_startup_clicked(self):
-        bat_path = rf'C:\Users\{USER_NAME}\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup'
         if self.launch_on_startup.isChecked():
             self.config.set("Settings", "launch_on_startup", "True")
-            with open(rf"{bat_path}\X-PlatPlayer.bat", "w") as f:
-                f.write(f"@echo off\npython {ROOT}\\main.py")
+            key = reg.OpenKey(
+                reg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Run",
+                0,
+                reg.KEY_ALL_ACCESS,
+            )
+            reg.SetValueEx(key, "XPLAT-MusicPlayer", 0,
+                           reg.REG_SZ, rf"{ROOT}\\backend\\main.pyc")
+            reg.CloseKey(key)
 
         else:
             self.config.set("Settings", "launch_on_startup", "False")
-            os.remove(
-                rf"{bat_path}\\X-PlatPlayer.bat")
+            key = reg.OpenKey(
+                reg.HKEY_CURRENT_USER,
+                r"Software\Microsoft\Windows\CurrentVersion\Run",
+                0,
+                reg.KEY_ALL_ACCESS,
+            )
+            reg.DeleteValue(key, "XPLAT-MusicPlayer")
+            reg.CloseKey(key)
 
         with open(rf"{ROOT}\\backend\\config.ini", "w") as configfile:
             self.config.write(configfile)
