@@ -20,7 +20,7 @@ class Window(QMainWindow):
         super().__init__()
         self.setGeometry(300, 300, 600, 450)
         self.setFixedSize(self.size())
-        self.setWindowTitle("XPLAT Music Player")
+        self.setWindowTitle("MP3 Player")
         self._player = Player()
         self.UiComponents()
 
@@ -90,31 +90,31 @@ class Window(QMainWindow):
         self.prev_btn = QPushButton(self)
         self.prev_btn.setGeometry(25, 325, 100, 100)
         self.prev_btn.clicked.connect(self.prev_song)
-        self.prev_btn.setIcon(QIcon("./assets/prev.png"))
+        self.prev_btn.setIcon(QIcon(f"{ROOT}/assets/prev.png"))
         self.prev_btn.setIconSize(QSize(100, 100))
 
         self.play_btn = QPushButton(self)
         self.play_btn.setGeometry(150, 325, 100, 100)
         self.play_btn.clicked.connect(self.get_song)
-        self.play_btn.setIcon(QIcon("./assets/play.png"))
+        self.play_btn.setIcon(QIcon(f"{ROOT}/assets/play.png"))
         self.play_btn.setIconSize(QSize(100, 100))
 
         next_btn = QPushButton(self)
         next_btn.setGeometry(275, 325, 100, 100)
         next_btn.clicked.connect(self.next_song)
-        next_btn.setIcon(QIcon("./assets/next.png"))
+        next_btn.setIcon(QIcon(f"{ROOT}/assets/next.png"))
         next_btn.setIconSize(QSize(100, 100))
 
         shuffle_btn = QPushButton(self)
         shuffle_btn.setGeometry(425, 375, 50, 50)
         shuffle_btn.clicked.connect(self.shuffle_music)
-        shuffle_btn.setIcon(QIcon("./assets/shuffle.png"))
+        shuffle_btn.setIcon(QIcon(f"{ROOT}/assets/shuffle.png"))
         shuffle_btn.setIconSize(QSize(50, 50))
 
         repeat_btn = QPushButton(self)
         repeat_btn.setGeometry(500, 375, 50, 50)
         repeat_btn.clicked.connect(self.repeat_music)
-        repeat_btn.setIcon(QIcon("./assets/repeat.png"))
+        repeat_btn.setIcon(QIcon(f"{ROOT}/assets/repeat.png"))
         repeat_btn.setIconSize(QSize(50, 50))
 
         # Create widget with songs
@@ -136,7 +136,7 @@ class Window(QMainWindow):
         self.get_songs()
 
     def get_image(self, url=None):
-        default = QPixmap("./assets/default.png")
+        default = QPixmap(f"{ROOT}/assets/default.png")
         if url is None:
             self.image.setPixmap(default)
             self.image.repaint()
@@ -149,11 +149,11 @@ class Window(QMainWindow):
                 self.image.setPixmap(default)
 
             else:
-                with open("./assets/thumbnail.png", "wb") as f:
+                with open(f"{ROOT}/assets/thumbnail.png", "wb") as f:
                     f.write(thumbnail.content)
-                self.image.setPixmap(QPixmap("./assets/thumbnail.png"))
+                self.image.setPixmap(QPixmap(f"{ROOT}/assets/thumbnail.png"))
                 self.image.keepAspectRatio = False
-                os.remove("./assets/thumbnail.png")
+                os.remove(f"{ROOT}/assets/thumbnail.png")
 
         except Exception:
             self.image.setPixmap(default)
@@ -219,7 +219,7 @@ class Window(QMainWindow):
             self.song = self.song_widget.currentItem().data(Qt.UserRole)
 
         self._player.player.set_pause(1)
-        self._player.get_song(self.song)
+        self._player.play_song(self.song)
         self.get_image(self.song.thumbnail)
 
         self._player.player.set_hwnd(self.videoframe.winId())
@@ -228,17 +228,22 @@ class Window(QMainWindow):
         self.timer.timeout.connect(self.update_slider)
         self.timer.start(200)
 
+        # timer to check if song is finished
+        self.timer2 = QTimer()
+        self.timer2.timeout.connect(self.check_song_finished)
+        self.timer2.start(1000)
+
         self.play_song()
 
     def play_song(self):
         self._player.player.set_pause(0)
-        self.play_btn.setIcon(QIcon("./assets/pause.png"))
+        self.play_btn.setIcon(QIcon(f"{ROOT}/assets/pause.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.pause_song)
 
     def pause_song(self):
         self._player.player.set_pause(1)
-        self.play_btn.setIcon(QIcon("./assets/play.png"))
+        self.play_btn.setIcon(QIcon(f"{ROOT}/assets/play.png"))
         self.play_btn.clicked.disconnect()
         self.play_btn.clicked.connect(self.play_song)
 
@@ -247,6 +252,8 @@ class Window(QMainWindow):
         self.progress_bar.setRange(0, length)
         self.progress_bar.setValue(self._player.player.get_time())
 
+        self.progress_bar.sliderMoved.connect(self.slider_moved)
+
         # Update progress_bar with current time
         self.time = str(datetime.timedelta(
             seconds=int(self._player.player.get_time() / 1000)))[2:]
@@ -254,14 +261,20 @@ class Window(QMainWindow):
             seconds=int(self._player.player.get_length() / 1000)))[2:]
         self.time_label.setText(f"{self.time} / {self.total_time}")
 
-        if int(self._player.player.get_time() / 1000) == int(self._player.player.get_length() / 1000):
-            self.next_song()
-
         try:
             if self.song != self.song_widget.currentItem().data(Qt.UserRole):
                 self.get_song()
         except AttributeError:
             pass
+
+    def slider_moved(self):
+        self.timer.stop()
+        self._player.player.set_time(self.progress_bar.value())
+        self.timer.start()
+
+    def check_song_finished(self):
+        if int(self._player.player.get_time() / 1000) == int(self._player.player.get_length() / 1000):
+            self.next_song()
 
     def volume_change(self):
         self._player.player.audio_set_volume(self.volume_slider.value())

@@ -5,7 +5,7 @@ import sys
 from PyQt5.QtWidgets import *
 from configparser import ConfigParser
 
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 ROOT = os.path.dirname(os.path.abspath(__file__))
 r = requests.get("https://aboutme.soerensen.repl.co/version.txt")
 
@@ -18,7 +18,7 @@ if not os.path.exists(f"{ROOT}\\config.ini"):
 
 app = QApplication(sys.argv)
 try:
-    with open("./Assets/stylesheet", "r") as f:
+    with open(f"{ROOT}/assets/stylesheet", "r") as f:
         app.setStyleSheet(f.read())
 except FileNotFoundError:
     QMessageBox.warning(None, "Error", "Could not load stylesheet")
@@ -34,16 +34,16 @@ if r.text != VERSION:
 
 
 session.execute(
-    "CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, online BOOLEAN, title TEXT, url TEXT, thumbnail TEXT)")
+    "CREATE TABLE IF NOT EXISTS songs (id INTEGER PRIMARY KEY, title TEXT, url TEXT, thumbnail TEXT)")
 session.commit()
 
-os.add_dll_directory(ROOT + r"\\assets\\dll")
+os.add_dll_directory(f"{ROOT}\\assets\\dll")
 
-for song in os.listdir(ROOT + r"\\assets\\downloads"):
+for song in os.listdir(f"{ROOT}\\assets\\downloads"):
     if song.endswith(".part"):
-        os.remove(ROOT + r"\\assets\\downloads\\" + song)
+        os.remove(f"{ROOT}\\assets\\downloads\\" + song)
     if song.endswith(".mp3") and session.query(Songs).filter(Songs.title == song).first() is None:
-        session.add(Songs(online=False, title=song,
+        session.add(Songs(title=song,
                     url=f"{ROOT}\\assets\\downloads\\{song}"))
         session.commit()
         print(f"Added {song}")

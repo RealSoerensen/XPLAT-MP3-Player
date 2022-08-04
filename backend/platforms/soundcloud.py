@@ -71,7 +71,7 @@ class SoundCloud(QWidget):
         with open(path, 'wb+') as fp:
             track.write_mp3_to(fp)
 
-        session.add(Songs(online=False, title=filename,
+        session.add(Songs(title=filename,
                     url=path, thumbnail=thumbnail))
         session.commit()
         QMessageBox.information(self, "Success", "Song(s) added")
