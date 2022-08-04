@@ -20,7 +20,7 @@ class Window(QMainWindow):
         super().__init__()
         self.setGeometry(300, 300, 600, 450)
         self.setFixedSize(self.size())
-        self.setWindowTitle("MP3 Player")
+        self.setWindowTitle("X-Plat MP3 Player")
         self._player = Player()
         self.UiComponents()
 
