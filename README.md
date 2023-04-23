@@ -1,6 +1,6 @@
-# XPlat-MP
+# XPLAT-MP3-Player
 
-XPlat-MP is a cross-platform music player designed to play music from your favorite music providers.
+XPLAT-MP3-Player is a cross-platform music player designed to play music from your favorite music providers.
 
 ## Features
 
@@ -30,10 +30,10 @@ pip install git+https://github.com/Cupcakus/pafy
 
 ## Bugs
 
-If you find a bug, please report it under [issues](https://github.com/RealSoerensen/XPLAT-MusicPlayer/issues).
+If you find a bug, please report it under [issues](https://github.com/RealSoerensen/XPLAT-MP3-Player/issues).
 
 If you think you can fix the bug, please assign the issue to yourself and make a PR when fixed.
 
 ## License
 
-XPlat-MP is licensed under the [GPL-3.0](LICENSE.md) license.
+XPLAT-MP3-Player is licensed under the [GPL-3.0](LICENSE.md) license.
